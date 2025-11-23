@@ -1,0 +1,44 @@
+# --- General Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Django ---
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+!static/.keep
+
+# --- Environment & Secrets ---
+.env
+.env.*
+.secrets
+
+# --- Virtual Environments ---
+# Your specific environment folder
+env/
+# Common alternatives
+venv/
+.venv/
+ENV/
+
+# --- IDEs & Editors ---
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Operating System Files ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.DS_Store?
+
+# --- Pytest / Coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
