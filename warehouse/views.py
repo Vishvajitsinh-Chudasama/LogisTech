@@ -92,3 +92,11 @@ def unload_truck(request):
         tid = data.get('tracking_id')
         logs = controller.rollback_load(tid)
         return JsonResponse({'status': 'processed', 'actions_taken': logs})
+
+def view_status(request):
+    """GET: View internal state of Conveyor and Stack"""
+    return JsonResponse({
+        'conveyor_count': len(controller.conveyor_queue),
+        'stack_count': len(controller.truck.stack),
+        'available_bins_in_memory': len(controller.bin_inventory)
+    })

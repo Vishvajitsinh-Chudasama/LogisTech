@@ -91,7 +91,7 @@ Base URL: ```http://127.0.0.1:8000/```
 
 | Method | Endpoint            | Description |
 |--------|----------------------|-------------|
-| GET    | `/` or `/generate_bins/` | **Reset & Init:** Clears the database and creates dummy bins with realistic location codes (e.g., `Aisle-01-Sect-02`). |
+| GET    | `/` | **Reset & Init:** Clears the database and creates dummy bins with realistic location codes (e.g., `Aisle-01-Sect-02`). |
 | GET    | `/view_status/`     | Returns counts for Conveyor, Truck Stack, and Empty Bins. |
 
 
