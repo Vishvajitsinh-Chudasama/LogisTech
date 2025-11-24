@@ -80,3 +80,15 @@ def optimize_load(request):
             'space_utilization': f"{(optimization_result['size']/capacity)*100}%",
             'execution_logs': optimization_result.get('execution_logs', [])
         })
+
+@csrf_exempt
+def unload_truck(request):
+    """
+    POST: Remove a specific package from the truck.
+    Triggers LIFO rollback logic if the item is buried deep in the stack.
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        tid = data.get('tracking_id')
+        logs = controller.rollback_load(tid)
+        return JsonResponse({'status': 'processed', 'actions_taken': logs})

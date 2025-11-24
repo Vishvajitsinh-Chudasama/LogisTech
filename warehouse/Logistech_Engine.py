@@ -154,7 +154,10 @@ class LogiMaster:
         pkg = self.conveyor_queue[0]
         
         best_bin = self.find_best_fit_bin(pkg.size)
-        if not best_bin: return f"No suitable bin found for size {pkg.size}"
+        if not best_bin:
+            requeued_pkg = self.conveyor_queue.popleft() 
+            self.conveyor_queue.append(requeued_pkg)
+            return f"No suitable bin found for size {pkg.size}"
 
         try:
             with transaction.atomic():
@@ -226,11 +229,12 @@ class LogiMaster:
 
         execution_logs = []
         for pkg_data in best_scenario['selection']:
+            tsize = pkg_data.get('size')
             tid = pkg_data.get('tracking_id')
             if tid:
                 bin_freed = self._free_bin_for_package(tid)
-                
-                truck_msg = self.load_truck_item(tid)
+
+                self.truck.load(tid,tsize)
                 
                 status_msg = "Moved from Bin to Truck" if bin_freed else "Loaded to Truck (was not in bin)"
                 execution_logs.append(f"{tid}: {status_msg}")
@@ -296,3 +300,34 @@ class LogiMaster:
             return f"Loaded {tracking_id} (Size: {pkg.size})"
         else:
             return "Error: Truck is full."
+
+
+    def rollback_load(self, target_tracking_id):
+        """ Remove specific package from truck using stack
+        First unload the truck until did't find the traget package and remove package then reload the truck"""
+        if not any(item['id'] == target_tracking_id for item in self.truck.stack):
+             return [f"Error: Item {target_tracking_id} not found on truck."]
+
+        temp_storage = []
+        action_log = []
+
+        while self.truck.stack:
+            item = self.truck.pop()
+            current_id = item['id']
+            
+            if current_id == target_tracking_id:
+                ShipmentLog.objects.create(tracking_id=current_id, status='UNLOADED', details="Target item removed via Rollback")
+                action_log.append(f"TARGET REMOVED: {current_id}")
+                break
+            else:
+                temp_storage.append(item)
+                ShipmentLog.objects.create(tracking_id=current_id, status='UNLOADED', details="Temporarily unloaded")
+                action_log.append(f"Temporarily Unloaded: {current_id}")
+
+        while temp_storage:
+            item = temp_storage.pop()
+            self.truck.load(item['id'], item['size'])
+            ShipmentLog.objects.create(tracking_id=item['id'], status='LOADED', details="Reloaded after rollback")
+            action_log.append(f"Reloaded: {item['id']}")
+
+        return action_log
